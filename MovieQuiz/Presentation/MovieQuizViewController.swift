@@ -106,12 +106,13 @@ final class MovieQuizViewController: UIViewController {
     
     
     // Функция для настройки шрифта и размера текста лэйблов.
-    func setFontForLabel(_ label: UILabel, fontName: String, fontSize: CGFloat) {
+    // Сделал их приватными
+    private func setFontForLabel(_ label: UILabel, fontName: String, fontSize: CGFloat) {
         label.font = UIFont(name: fontName, size: fontSize)
     }
     
     // Функция для настройки шрифта и размера текста кнопок.
-    func setFontForButton(_ button: UIButton, fontName: String, fontSize: CGFloat) {
+    private func setFontForButton(_ button: UIButton, fontName: String, fontSize: CGFloat) {
         button.titleLabel?.font = UIFont(name: fontName, size: fontSize)
     }
 
@@ -155,8 +156,12 @@ final class MovieQuizViewController: UIViewController {
     private func showAnswerResult(isCorrect: Bool) {
 
         imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = isCorrect ? UIColor.green.cgColor : UIColor.red.cgColor
         
+        
+        
+     // Использование цветов кастомных из макета : YP Green и YP Red
+        imageView.layer.borderColor = isCorrect ? UIColor(named: "YP Green")?.cgColor : UIColor(named: "YP Red")?.cgColor
+               
         yesButton.isEnabled = false    // Деактивация кнопок
         noButton.isEnabled = false
         // Отложенный переход к следующему вопросу или результатам
