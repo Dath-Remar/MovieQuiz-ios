@@ -166,7 +166,8 @@ final class MovieQuizViewController: UIViewController {
         noButton.isEnabled = false
         // Отложенный переход к следующему вопросу или результатам
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
             self.yesButton.isEnabled = true
             self.noButton.isEnabled = true
             
@@ -208,7 +209,8 @@ final class MovieQuizViewController: UIViewController {
         )
         // Действие для кнопки в алерте
 
-        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
+        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+            guard let self = self else { return }
             self.resetQuiz()
         }
         
