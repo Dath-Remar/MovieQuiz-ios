@@ -1,14 +1,6 @@
-//
-//  QuizStepViewModel.swift
-//  MovieQuiz
-//
-//  Created by Сергей Балакирев on 22.03.2024.
-//
-
 import UIKit
 
-
-// Модель данных для отображения вопроса
+// MARK: - QuizStepViewModel
 
 struct QuizStepViewModel {
     let image: UIImage

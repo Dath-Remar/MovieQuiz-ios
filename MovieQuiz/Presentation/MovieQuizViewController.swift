@@ -1,36 +1,41 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
-    // MARK: - Lifecycle
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+   
+    // MARK: - Private Properties
+    
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private lazy var alertPresenter = AlertPresenter(viewController: self)
     
     
     
     
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Принудительно устанавливаем темный стиль интерфейса для этого вью контроллера.
-        // Это изменит цвет системных элементов UI, например, статус бара на белый,
-        // если фон вашего приложения темный.
+        let questionFactory = QuestionFactory()
+        questionFactory.delegate = self
+        self.questionFactory = questionFactory
+         
         overrideUserInterfaceStyle = .dark
-        
+        print(NSHomeDirectory())
+        print(Bundle.main.bundlePath) 
         // Показываем текущий вопрос квиза на экране.
         showCurrentQuestion()
         
-        // Настраиваем шрифт и размер для текстовых меток и кнопок.
         setFontForLabel(textLabel, fontName: "YSDisplay-Bold", fontSize: 23)
         setFontForLabel(counterLabel, fontName: "YSDisplay-Medium", fontSize: 20)
         setFontForLabel(question, fontName: "YSDisplay-Medium", fontSize: 20)
-        
         setFontForButton(yesButton, fontName: "YSDisplay-Medium", fontSize: 20)
         setFontForButton(noButton, fontName: "YSDisplay-Medium", fontSize: 20)
     }
+    
+    // MARK: - IBAction
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         processAnswer(false)
@@ -38,6 +43,8 @@ final class MovieQuizViewController: UIViewController {
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         processAnswer(true)
     }
+    // MARK: - IBOutlet
+    
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var textLabel: UILabel!
@@ -45,6 +52,30 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var question: UILabel!
     
+    // MARK: - QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
+            // Здесь может быть код для обработки ситуации, когда вопросы закончились или произошла ошибка
+            return
+        }
+        self.currentQuestion = question
+        let viewModel = self.convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            // Использование UIView.transition для плавного перехода
+            UIView.transition(with: self.view, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                // В этом блоке animations вы обновляете пользовательский интерфейс новыми данными
+                self.show(quiz: viewModel)
+            }, completion: nil)
+        }
+    }
+    // Отображение текущего вопроса
+    
+    private func showCurrentQuestion() {
+        guard let factory = questionFactory else { return }
+        factory.requestNextQuestion()
+    }
     
     // Функция для настройки шрифта и размера текста лэйблов.
     // Сделал их приватными
@@ -123,45 +154,20 @@ final class MovieQuizViewController: UIViewController {
         }
     }
     
-    // Отображение текущего вопроса
-    
-    private func showCurrentQuestion() {
-        if let firstQuestion = questionFactory.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            UIView.transition(with: self.view, duration: 0.5, options: .transitionCrossDissolve, animations: {      // Добавление анимации перехода между вопросами
-                let viewModel = self.convert(model: firstQuestion)
-                self.show(quiz: viewModel)
-            }, completion: nil)
-        }
-    }
+
         // Показ окончательных результатов квиза
         
     private func showFinalResult() {
-            let resultViewModel = QuizResultsViewModel(
-                title: "Раунд окончен!",
-                text: "Ваш результат \(correctAnswers) из \(questionsAmount)",
-                buttonText: "Сыграть ещё раз"
-            )
-            show(quiz: resultViewModel)
+        let text = correctAnswers == questionsAmount ?
+            "Поздравляем, вы ответили на 10 из 10!" :
+            "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
+
+        let model = AlertModel(title: "Раунд окончен!", message: text, buttonText: "Сыграть ещё раз") { [weak self] in
+            self?.resetQuiz()
         }
-        // Отображение алерта с результатами квиза
-        
-    private func show(quiz result: QuizResultsViewModel) {
-            let alert = UIAlertController(
-                title: result.title,
-                message: result.text,
-                preferredStyle: .alert
-            )
-            // Действие для кнопки в алерте
-            
-            let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.resetQuiz()
-            }
-            
-            alert.addAction(action)
-            present(alert, animated: true, completion: nil)
-        }
+        alertPresenter.showAlert(model: model)
+    }
+
         // Сброс квиза и начало нового раунда
         
      private func resetQuiz() {

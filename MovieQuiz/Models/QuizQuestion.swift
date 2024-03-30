@@ -1,14 +1,6 @@
-//
-//  QuizQuestion.swift
-//  MovieQuiz
-//
-//  Created by Сергей Балакирев on 22.03.2024.
-//
-
 import Foundation
 
-
-// Структура для вопроса квиза
+// MARK: - QuizQuestionModel
 
 struct QuizQuestion {
     let image: String

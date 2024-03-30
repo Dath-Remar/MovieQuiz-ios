@@ -1,14 +1,6 @@
-//
-//  QuizResultsViewModel.swift
-//  MovieQuiz
-//
-//  Created by Сергей Балакирев on 22.03.2024.
-//
-
 import Foundation
 
-
-// Модель данных для результатов квиза
+// MARK: - QuizResultsViewModel
 
 struct QuizResultsViewModel {
     let title: String
