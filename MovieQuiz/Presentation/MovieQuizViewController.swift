@@ -55,7 +55,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
-            // Здесь может быть код для обработки ситуации, когда вопросы закончились или произошла ошибка
             return
         }
         self.currentQuestion = question
