@@ -10,14 +10,19 @@ class StatisticServiceImplementation: StatisticService {
     }
     
     func store(correct count: Int, total amount: Int) {
-        userDefaults.set(count, forKey: Keys.correct.rawValue)
-        userDefaults.set(amount, forKey: Keys.total.rawValue)
+        let newGamesCount = gamesCount + 1
+        let newCorrect = self.correct + count
+        let newTotal = self.total + amount
+        
+        userDefaults.set(newCorrect, forKey: Keys.correct.rawValue)
+        userDefaults.set(newTotal, forKey: Keys.total.rawValue)
+        userDefaults.set(newGamesCount, forKey: Keys.gamesCount.rawValue)
+        
+        
+        
         let newGameRecord = GameRecord(correct: count, total: amount, date: Date())
-        var currentBestGame = bestGame
-        if newGameRecord.isBetterThan(currentBestGame) {
-            currentBestGame = newGameRecord
-            bestGame = currentBestGame
-            userDefaults.set(try? JSONEncoder().encode(currentBestGame), forKey: Keys.bestGame.rawValue)
+        if newGameRecord.isBetterThan(bestGame) {
+            bestGame = newGameRecord
         }
     }
     
@@ -76,13 +81,11 @@ class StatisticServiceImplementation: StatisticService {
     
     func updateGameStats(isCorrect: Bool) {
         if isCorrect {
-            totalAccuracy = (totalAccuracy * Double(gamesCount - 1) + 1) / Double(gamesCount)
             self.correct += 1
         }
         self.total += 1
-        if total % 10 == 0 {
-            gamesCount += 1
-        }
+      
+      
     }
     
     func resetGameStats() {

@@ -10,8 +10,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
-    
-    
+    private var statisticService: StatisticService?
+    private var gameStatsText: String = ""
     
     
     // MARK: - Lifecycle
@@ -23,8 +23,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         self.questionFactory = questionFactory
          
         overrideUserInterfaceStyle = .dark
-        print(NSHomeDirectory())
-        print(Bundle.main.bundlePath) 
+        statisticService = StatisticServiceImplementation()
         // Показываем текущий вопрос квиза на экране.
         showCurrentQuestion()
         
@@ -57,8 +56,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         guard let question = question else {
             return
         }
-        self.currentQuestion = question
-        let viewModel = self.convert(model: question)
+       currentQuestion = question
+        let viewModel = convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -157,13 +156,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         // Показ окончательных результатов квиза
         
     private func showFinalResult() {
-        let text = correctAnswers == questionsAmount ?
+        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        let statisticsText = getStatisticsText()
+        let messagePrefix = correctAnswers == questionsAmount ?
             "Поздравляем, вы ответили на 10 из 10!" :
-            "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
-
-        let model = AlertModel(title: "Раунд окончен!", message: text, buttonText: "Сыграть ещё раз") { [weak self] in
+            "Ваш результат: \(correctAnswers)/10"
+        
+        // Добавляем статистику к основному сообщению
+        let finalMessage = "\(messagePrefix)\n\(statisticsText)"
+        
+        // Создаем модель алерта с нашим сообщением
+        let model = AlertModel(title: "Этот раунд окончен!", message: finalMessage, buttonText: "Сыграть ещё раз") { [weak self] in
             self?.resetQuiz()
         }
+        
+        // Показываем алерт с результатами и статистикой
         alertPresenter.showAlert(model: model)
     }
 
@@ -174,5 +181,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             correctAnswers = 0
             showCurrentQuestion()
         }
+    private func getStatisticsText() -> String {
+        guard let statisticsService = statisticService else {
+            return "Статистика недоступна"
+        }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy HH:mm"  // Формат даты для отображения
+        
+        let gamesPlayed = statisticsService.gamesCount
+        let bestGameScore = "\(statisticsService.bestGame.correct)/\(statisticsService.bestGame.total)"
+        let bestGameDate = dateFormatter.string(from: statisticsService.bestGame.date)
+        let overallAccuracy = String(format: "%.2f%%", statisticsService.totalAccuracy * 100)
+        
+        return "Количество сыгранных квизов: \(gamesPlayed)\nРекорд: \(bestGameScore) (\(bestGameDate))\nСредняя точность: \(overallAccuracy)"
+    }
+    
     }
 
