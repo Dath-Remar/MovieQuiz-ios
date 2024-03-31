@@ -3,7 +3,6 @@ import Foundation
 // MARK: - QuestionFactory
 
 final class QuestionFactory: QuestionFactoryProtocol {
-
     weak var delegate: QuestionFactoryDelegate?
     
     func setup(delegate: QuestionFactoryDelegate) {

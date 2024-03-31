@@ -4,7 +4,6 @@ import Foundation
 
 class StatisticServiceImplementation: StatisticService {
     private let userDefaults = UserDefaults.standard
-    
     private enum Keys: String {
         case correct, total, bestGame, gamesCount, totalAccuracy
     }
@@ -13,13 +12,9 @@ class StatisticServiceImplementation: StatisticService {
         let newGamesCount = gamesCount + 1
         let newCorrect = self.correct + count
         let newTotal = self.total + amount
-        
         userDefaults.set(newCorrect, forKey: Keys.correct.rawValue)
         userDefaults.set(newTotal, forKey: Keys.total.rawValue)
         userDefaults.set(newGamesCount, forKey: Keys.gamesCount.rawValue)
-        
-        
-        
         let newGameRecord = GameRecord(correct: count, total: amount, date: Date())
         if newGameRecord.isBetterThan(bestGame) {
             bestGame = newGameRecord
@@ -84,8 +79,6 @@ class StatisticServiceImplementation: StatisticService {
             self.correct += 1
         }
         self.total += 1
-      
-      
     }
     
     func resetGameStats() {
