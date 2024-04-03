@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - StatisticServiceImplementation
 
-class StatisticServiceImplementation: StatisticService {
+final class StatisticServiceImplementation: StatisticService {
     private let userDefaults = UserDefaults.standard
     private enum Keys: String {
         case correct, total, bestGame, gamesCount, totalAccuracy
@@ -29,7 +29,7 @@ class StatisticServiceImplementation: StatisticService {
             userDefaults.set(newValue, forKey: Keys.correct.rawValue)
         }
     }
-
+    
     private var total: Int {
         get {
             return userDefaults.integer(forKey: Keys.total.rawValue)
@@ -38,7 +38,7 @@ class StatisticServiceImplementation: StatisticService {
             userDefaults.set(newValue, forKey: Keys.total.rawValue)
         }
     }
-
+    
     var totalAccuracy: Double {
         get {
             return Double(correct) / Double(total)
@@ -72,19 +72,5 @@ class StatisticServiceImplementation: StatisticService {
             }
             userDefaults.set(data, forKey: Keys.bestGame.rawValue)
         }
-    }
-    
-    func updateGameStats(isCorrect: Bool) {
-        if isCorrect {
-            self.correct += 1
-        }
-        self.total += 1
-    }
-    
-    func resetGameStats() {
-        totalAccuracy = 0
-        gamesCount = 0
-        userDefaults.set(0, forKey: Keys.correct.rawValue)
-        userDefaults.set(0, forKey: Keys.total.rawValue)
     }
 }

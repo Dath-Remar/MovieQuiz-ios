@@ -1,7 +1,7 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
-
+    
     // MARK: - IBAction
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
@@ -20,25 +20,24 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var question: UILabel!
     
     
-     // MARK: - Private Properties
-     
-     private var currentQuestionIndex = 0
-     private var correctAnswers = 0
-     private let questionsAmount: Int = 10
-     private var questionFactory: QuestionFactoryProtocol?
-     private var currentQuestion: QuizQuestion?
-     private lazy var alertPresenter = AlertPresenter(viewController: self)
-     private var statisticService: StatisticService?
-     private var gameStatsText: String = ""
-     
-     
-     // MARK: - Lifecycle
-     
-     override func viewDidLoad() {
-         super.viewDidLoad()
-         setupQuiz()
-     }
-     
+    // MARK: - Private Properties
+    
+    private var currentQuestionIndex = 0
+    private var correctAnswers = 0
+    private let questionsAmount: Int = 10
+    private var questionFactory: QuestionFactoryProtocol?
+    private var currentQuestion: QuizQuestion?
+    private lazy var alertPresenter = AlertPresenter(viewController: self)
+    private var statisticService: StatisticService?
+    
+    
+    // MARK: - Lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupQuiz()
+    }
+    
     // MARK: - Setup
     private func setupQuiz() {
         let questionFactory = QuestionFactory()
@@ -58,7 +57,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     // MARK: - UI Configuration
-        
+    
     private func setFontForLabel(_ label: UILabel, fontName: String, fontSize: CGFloat) {
         label.font = UIFont(name: fontName, size: fontSize)
     }
@@ -66,13 +65,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func setFontForButton(_ button: UIButton, fontName: String, fontSize: CGFloat) {
         button.titleLabel?.font = UIFont(name: fontName, size: fontSize)
     }
-
+    
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
             return
         }
-       currentQuestion = question
+        currentQuestion = question
         let viewModel = convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
@@ -82,14 +81,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             }, completion: nil)
         }
     }
-
+    
     // MARK: - Question Handling
-        
+    
     private func showCurrentQuestion() {
         guard let factory = questionFactory else { return }
         factory.requestNextQuestion()
     }
-          
+    
     private func processAnswer(_ answer: Bool) {
         guard yesButton.isEnabled, noButton.isEnabled else { return }
         guard let currentQuestion = currentQuestion else {
@@ -103,7 +102,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     // MARK: - Display Logic
-        
+    
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
             image: UIImage(named: model.image) ?? UIImage(),
@@ -111,7 +110,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
     }
-        
+    
     private func show(quiz step: QuizStepViewModel) {
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 20
@@ -124,13 +123,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor(named: "YP Green")?.cgColor : UIColor(named: "YP Red")?.cgColor
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
+        changeStateButtons(isEnabled: false)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let self = self else { return }
-            self.yesButton.isEnabled = true
-            self.noButton.isEnabled = true
+            changeStateButtons(isEnabled: true)
             if self.currentQuestionIndex < self.questionsAmount - 1 {
                 self.currentQuestionIndex += 1
                 self.showCurrentQuestion()
@@ -139,25 +136,25 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             }
         }
     }
-        
+    
     private func showFinalResult() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
         let statisticsText = getStatisticsText()
         let messagePrefix = correctAnswers == questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10!" :
-            "Ваш результат: \(correctAnswers)/10"
+        "Поздравляем, вы ответили на 10 из 10!" :
+        "Ваш результат: \(correctAnswers)/10"
         let finalMessage = "\(messagePrefix)\n\(statisticsText)"
         let model = AlertModel(title: "Этот раунд окончен!", message: finalMessage, buttonText: "Сыграть ещё раз") { [weak self] in
             self?.resetQuiz()
         }
         alertPresenter.showAlert(model: model)
     }
-
-     private func resetQuiz() {
-            currentQuestionIndex = 0
-            correctAnswers = 0
-            showCurrentQuestion()
-        }
+    
+    private func resetQuiz() {
+        currentQuestionIndex = 0
+        correctAnswers = 0
+        showCurrentQuestion()
+    }
     private func getStatisticsText() -> String {
         guard let statisticsService = statisticService else {
             return "Статистика недоступна"
@@ -168,7 +165,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let bestGameScore = "\(statisticsService.bestGame.correct)/\(statisticsService.bestGame.total)"
         let bestGameDate = dateFormatter.string(from: statisticsService.bestGame.date)
         let overallAccuracy = String(format: "%.2f%%", statisticsService.totalAccuracy * 100)
-        return "Количество сыгранных квизов: \(gamesPlayed)\nРекорд: \(bestGameScore) (\(bestGameDate))\nСредняя точность: \(overallAccuracy)"
+        return """
+        Количество сыгранных квизов: \(gamesPlayed)
+        Рекорд: \(bestGameScore) (\(bestGameDate))
+        Средняя точность: \(overallAccuracy)
+        """
     }
+    private func changeStateButtons(isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
+    }
+
 }
+
 
