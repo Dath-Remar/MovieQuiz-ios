@@ -10,6 +10,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
     
     private var movies: [MostPopularMovie] = []
     private var moviesLoader = MoviesLoader()
+    private var lastRandomRating: Float?
     
     // MARK: - Initialization
     
@@ -41,7 +42,12 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 return
             }
             let rating = Float(movie.rating) ?? 0
-            let randomRating = Float.random(in: 8.1...8.8).rounded(toPlaces: 1)
+            var randomRating: Float
+            repeat {
+                randomRating = Float.random(in: 8.1...8.8).rounded(toPlaces: 1)
+            } while randomRating == self.lastRandomRating
+            self.lastRandomRating = randomRating
+
             let text = "Рейтинг этого фильма больше чем \(randomRating)?"
             let correctAnswer = rating > randomRating
 
