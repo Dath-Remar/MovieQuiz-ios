@@ -32,8 +32,11 @@ final class QuestionFactory: QuestionFactoryProtocol {
             do {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
+                let detailedError = NSError(domain: "MovieQuizErrorDomain",
+                                            code: 1001,
+                                            userInfo: [NSLocalizedDescriptionKey: "Не удалось загрузить изображение для фильма: \(movie.title). Проверьте соединение с интернетом и попробуйте снова."])
                 DispatchQueue.main.async {
-                    self.delegate?.didReceiveError(error: error)
+                    self.delegate?.didReceiveError(error: detailedError)
                 }
                 return
             }
