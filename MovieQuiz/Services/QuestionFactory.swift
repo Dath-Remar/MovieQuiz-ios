@@ -1,15 +1,76 @@
 import Foundation
 
-// MARK: - QuestionFactory
-
 final class QuestionFactory: QuestionFactoryProtocol {
-    weak var delegate: QuestionFactoryDelegate?
+    
+    // MARK: - Public Properties
+    
+    var delegate: QuestionFactoryDelegate?
+    
+    // MARK: - Private Properties
+    
+    private var movies: [MostPopularMovie] = []
+    private var moviesLoader = MoviesLoader()
+    
+    // MARK: - Initialization
+    
+    init(delegate: QuestionFactoryDelegate?) {
+        self.delegate = delegate
+    }
+    
+    // MARK: - Public Methods
     
     func setup(delegate: QuestionFactoryDelegate) {
         self.delegate = delegate
     }
     
-    private let question: [QuizQuestion] = [
+    func requestNextQuestion() {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            let index = (0..<self.movies.count).randomElement() ?? 0
+            guard let movie = self.movies[safe: index] else { return }
+            var imageData = Data()
+            do {
+                imageData = try Data(contentsOf: movie.resizedImageURL)
+            } catch {
+                DispatchQueue.main.async {
+                    self.delegate?.didReceiveError(error: error)
+                }
+                return
+            }
+            let rating = Float(movie.rating) ?? 0
+            let text = "Рейтинг этого фильма больше чем 7?"
+            let correctAnswer = rating > 7
+            let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
+            DispatchQueue.main.async {
+                self.delegate?.didReceiveQuestion(question: question)
+            }
+        }
+    }
+    
+    func loadData() {
+        moviesLoader.loadMovies { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let mostPopularMovies):
+                    self.movies = mostPopularMovies.items
+                    self.delegate?.didLoadDataFromServer()
+                case .failure(let error):
+                    self.delegate?.didFailToLoadData(with: error)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func showNetworkError(message: String) {
+        delegate?.didReceiveError(error: NSError(domain: "com.yp.MovieQuiz", code: 1, userInfo: [NSLocalizedDescriptionKey: message]))
+    }
+
+    // MARK: - Quiz Questions
+    
+    /* private let questions: [QuizQuestion] = [
         QuizQuestion(
             image: "The Godfather",
             text: "Рейтинг этого фильма больше чем 6?",
@@ -50,16 +111,5 @@ final class QuestionFactory: QuestionFactoryProtocol {
             image: "Vivarium",
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false)
-    ]
-    // MARK: - requestNextQuestion
-    
-    func requestNextQuestion() {
-        guard let index = (0..<question.count).randomElement() else {
-            delegate?.didReceiveNextQuestion(question: nil)
-            return
-        }
-        let question = question[index]
-        delegate?.didReceiveNextQuestion(question: question)
-    }
-    
+    ] */
 }
