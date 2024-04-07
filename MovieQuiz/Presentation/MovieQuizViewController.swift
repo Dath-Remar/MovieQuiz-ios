@@ -31,8 +31,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private lazy var alertPresenter = AlertPresenter(viewController: self)
     private var statisticService: StatisticService?
 
-    
-    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -81,7 +79,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
         currentQuestion = question
         let viewModel = convert(model: question)
-        
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             UIView.transition(with: self.view, duration: 0.5, options: .transitionCrossDissolve, animations: {
@@ -145,6 +142,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
+    // MARK: - Results Handling
+    
     private func showFinalResult() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
         let statisticsText = getStatisticsText()
@@ -163,6 +162,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         correctAnswers = 0
         showCurrentQuestion()
     }
+    
     private func getStatisticsText() -> String {
         guard let statisticsService = statisticService else {
             return "Статистика недоступна"
@@ -179,30 +179,27 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         Средняя точность: \(overallAccuracy)
         """
     }
+    
+    // MARK: - UI Helpers
+    
     private func changeStateButtons(isEnabled: Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
     }
     
-    
-    
     // MARK: - AlertError
     
     private func showNetworkError(message: String) {
         hideLoadingIndicator()
-        
         let model = AlertModel(title: "Ошибка",
                                message: message,
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
-            
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
-            
             self.questionFactory?.requestNextQuestion()
         }
         alertPresenter.showAlert(model: model)
-        
     }
     
     // MARK: - ActivityIndicator
@@ -211,10 +208,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
+    
     private func hideLoadingIndicator() {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
+    
     // MARK: - Public methods
     
     func didLoadDataFromServer() {
@@ -238,18 +237,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self.alertPresenter.showAlert(model: model)
         }
     }
-
     
     func didFailToLoadData(with error: Error) {
         handleDataLoadingError(with: error)
     }
-
     
     func didReceiveError(error: Error) {
         handleDataLoadingError(with: error)
     }
-    
-    
     
     func didReceiveQuestion(question: QuizQuestion?) {
         guard let question = question else {
@@ -261,7 +256,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self?.show(quiz: viewModel)
         }
     }
-    
 }
 
 

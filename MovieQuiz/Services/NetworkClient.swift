@@ -1,6 +1,7 @@
 import Foundation
 
 struct NetworkClient {
+    
     // MARK: - Private Properties
     
     private enum NetworkError: Error {
