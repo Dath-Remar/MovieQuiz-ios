@@ -38,8 +38,10 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 return
             }
             let rating = Float(movie.rating) ?? 0
-            let text = "Рейтинг этого фильма больше чем 7?"
-            let correctAnswer = rating > 7
+            let randomRating = Float.random(in: 8.1...8.8).rounded(toPlaces: 1)
+            let text = "Рейтинг этого фильма больше чем \(randomRating)?"
+            let correctAnswer = rating > randomRating
+
             let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
             DispatchQueue.main.async {
                 self.delegate?.didReceiveQuestion(question: question)
@@ -112,4 +114,10 @@ final class QuestionFactory: QuestionFactoryProtocol {
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false)
     ] */
+}
+extension Float {
+    func rounded(toPlaces places: Int) -> Float {
+        let divisor = pow(10.0, Float(places))
+        return (self * divisor).rounded() / divisor
+    }
 }
