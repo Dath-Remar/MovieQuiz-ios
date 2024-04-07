@@ -53,6 +53,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         questionFactory.loadData()
         imageView.layer.cornerRadius = 20
         imageView.backgroundColor = .clear
+        textLabel.text = ""
     }
     
     private func configureUI() {
