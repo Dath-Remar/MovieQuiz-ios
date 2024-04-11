@@ -54,6 +54,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
             let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
             DispatchQueue.main.async {
                 self.delegate?.didReceiveQuestion(question: question)
+                
             }
         }
     }

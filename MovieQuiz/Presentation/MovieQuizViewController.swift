@@ -52,6 +52,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.cornerRadius = 20
         imageView.backgroundColor = .clear
         textLabel.text = ""
+        activityIndicator.hidesWhenStopped = true
     }
     
     private func configureUI() {
@@ -73,24 +74,28 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     // MARK: - QuestionFactoryDelegate
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        currentQuestion = question
-        let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                return
+            }
+            self.hideLoadingIndicator()
+            guard let question = question else {
+                return
+            }
+            self.currentQuestion = question
+            let viewModel = self.convert(model: question)
             UIView.transition(with: self.view, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 self.show(quiz: viewModel)
-            }, completion: nil)
+            })
         }
     }
-    
     // MARK: - Question Handling
     
     private func showCurrentQuestion() {
         guard let factory = questionFactory else { return }
+        showLoadingIndicator()
         factory.requestNextQuestion()
     }
     
@@ -120,8 +125,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 20
         imageView.layer.borderColor = UIColor.clear.cgColor
-        textLabel.text = step.question
-        imageView.image = step.image
+        UIView.transition(with: textLabel, duration: 1, options: .transitionCrossDissolve, animations: { [weak self] in
+            self?.textLabel.text = step.question
+        })
+        UIView.transition(with: imageView, duration: 1, options: .transitionCrossDissolve, animations: { [weak self] in
+            self?.imageView.image = step.image
+        })
         counterLabel.text = step.questionNumber
     }
     
@@ -247,6 +256,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     func didReceiveQuestion(question: QuizQuestion?) {
+        hideLoadingIndicator()
         guard let question = question else {
             return
         }
