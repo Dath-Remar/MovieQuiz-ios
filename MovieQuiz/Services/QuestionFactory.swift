@@ -47,10 +47,10 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 randomRating = Float.random(in: 8.1...8.8).rounded(toPlaces: 1)
             } while randomRating == self.lastRandomRating
             self.lastRandomRating = randomRating
-
-            let text = "Рейтинг этого фильма больше чем \(randomRating)?"
-            let correctAnswer = rating > randomRating
-
+            let askIfHigher = Bool.random()
+            let text = askIfHigher ? "Рейтинг этого фильма больше, чем \(randomRating)?" : "Рейтинг этого фильма меньше, чем \(randomRating)?"
+            let correctAnswer = askIfHigher ? rating > randomRating : rating < randomRating
+            
             let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
             DispatchQueue.main.async {
                 self.delegate?.didReceiveQuestion(question: question)
