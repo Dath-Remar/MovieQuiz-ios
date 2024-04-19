@@ -5,15 +5,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - IBAction
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        processAnswer(false)
+        presenter.handleNoButtonClicked()
     }
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        processAnswer(true)
+        presenter.handleYesButtonClicked()
     }
     // MARK: - IBOutlet
     
-    @IBOutlet private weak var noButton: UIButton!
-    @IBOutlet private weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -24,10 +24,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Private Properties
     
     //  private var currentQuestionIndex = 0
-    private var correctAnswers = 0
+    var correctAnswers = 0
     //  private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion: QuizQuestion?
+    var currentQuestion: QuizQuestion?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
     private var statisticService: StatisticService?
     private var presenter = MovieQuizPresenter()
@@ -37,6 +37,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupQuiz()
+        presenter.viewController = self // Устанавливаем ссылку на ViewController в Presenter
+
     }
     
     // MARK: - Setup
@@ -100,7 +102,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         factory.requestNextQuestion()
     }
     
-    private func processAnswer(_ answer: Bool) {
+ /*   func processAnswer(_ answer: Bool) {
         guard yesButton.isEnabled, noButton.isEnabled else { return }
         guard let currentQuestion = currentQuestion else {
             return
@@ -111,7 +113,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
         showAnswerResult(isCorrect: isCorrect)
     }
-    
+    */
     // MARK: - Display Logic
     /*
      private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -135,7 +137,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         counterLabel.text = step.questionNumber
     }
     
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor(named: "YP Green")?.cgColor : UIColor(named: "YP Red")?.cgColor
         changeStateButtons(isEnabled: false)
