@@ -20,7 +20,25 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // MARK: - Public Methods
     
-    
+    // Глобальная переменная для доступа к Reachability
+    let reachability = try! Reachability()
+
+    func isConnectedToNetwork() -> Bool {
+        reachability.whenReachable = { _ in
+            print("Сеть доступна")
+        }
+        reachability.whenUnreachable = { _ in
+            print("Сеть недоступна")
+        }
+
+        do {
+            try reachability.startNotifier()
+        } catch {
+            print("Unable to start notifier")
+        }
+
+        return reachability.connection != .unavailable
+    }
 
     func handleDataLoadingError(with error: Error) {
         // Подготовка модели алерта с замыканием для сброса квиза и повторной загрузки данных
@@ -33,11 +51,34 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self.viewController?.hideLoadingIndicator()  // Управление UI через ссылку на ViewController
             self.viewController?.resetQuiz()  // Сброс индексов и счётчиков квиза
             self.viewController?.showLoadingIndicator()  // Управление UI через ссылку на ViewController
-            self.questionFactory?.loadData(completion: { [weak self] in
-                self?.viewController?.showCurrentQuestion()  // Показ текущего вопроса после перезагрузки данных
-            })
+
+            // Повторная попытка загрузки данных с задержкой
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {  // Задержка перед повторной попыткой загрузки данных
+                self.attemptToReloadData()
+            }
         }
         // Показ алерта через ViewController
+        viewController?.alertPresenter.showAlert(model: alertModel)
+    }
+
+    private func attemptToReloadData() {
+        if !isConnectedToNetwork() {
+            handleNoInternetConnection()
+            return
+        }
+
+        self.questionFactory?.loadData(completion: { [weak self] in
+            self?.viewController?.showCurrentQuestion()  // Показ текущего вопроса после перезагрузки данных
+        })
+    }
+
+    private func handleNoInternetConnection() {
+        let alertModel = AlertModel(
+            title: "Нет соединения",
+            message: "Подключение к Интернету отсутствует. Пожалуйста, проверьте ваше соединение и попробуйте снова.",
+            buttonText: "OK",
+            completion: {}
+        )
         viewController?.alertPresenter.showAlert(model: alertModel)
     }
 
