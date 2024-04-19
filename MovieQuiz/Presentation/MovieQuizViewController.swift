@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBAction
     
@@ -43,21 +43,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - Setup
     private func setupQuiz() {
-        let questionFactory = QuestionFactory(delegate: self)
-        questionFactory.delegate = self
+       // questionFactory.delegate = presenter
+        let questionFactory = QuestionFactory(delegate: presenter)  // Создание фабрики вопросов
         self.questionFactory = questionFactory
-        overrideUserInterfaceStyle = .dark
-        statisticService = StatisticServiceImplementation()
-        showCurrentQuestion()
-        configureUI()
-        showLoadingIndicator()
-        questionFactory.loadData()
-        imageView.layer.cornerRadius = 20
-        imageView.backgroundColor = .clear
-        textLabel.text = ""
-        activityIndicator.hidesWhenStopped = true
+        overrideUserInterfaceStyle = .dark  // Установка стиля интерфейса
+        statisticService = StatisticServiceImplementation()  // Инициализация сервиса статистики
+        configureUI()  // Настройка UI
+        showLoadingIndicator()  // Показ индикатора загрузки
+
+        imageView.layer.cornerRadius = 20  // Настройка внешнего вида imageView
+        imageView.backgroundColor = .clear  // Установка фона imageView
+        textLabel.text = ""  // Сброс текста метки
+        activityIndicator.hidesWhenStopped = true  // Установка поведения индикатора
+        // Загрузка данных с коллбэком для отображения вопроса
+        questionFactory.loadData(completion: { [weak self] in
+            self?.showCurrentQuestion()  // Вызов метода для отображения вопроса после загрузки данных
+        })
     }
-    
     private func configureUI() {
         setFontForLabel(question, fontName: "YSDisplay-Medium", fontSize: 20)
         setFontForLabel(textLabel, fontName: "YSDisplay-Bold", fontSize: 23)
@@ -76,7 +78,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         button.titleLabel?.font = UIFont(name: fontName, size: fontSize)
     }
     
-    // MARK: - QuestionFactoryDelegate
+   /* // MARK: - QuestionFactoryDelegate
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
         DispatchQueue.main.async { [weak self] in
@@ -93,7 +95,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 self.show(quiz: viewModel)
             })
         }
-    }
+    }*/
     // MARK: - Question Handling
     
     private func showCurrentQuestion() {
@@ -124,17 +126,27 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
      )
      } */
     
-    private func show(quiz step: QuizStepViewModel) {
-        imageView.layer.masksToBounds = true
-        imageView.layer.cornerRadius = 20
-        imageView.layer.borderColor = UIColor.clear.cgColor
-        UIView.transition(with: textLabel, duration: 1, options: .transitionCrossDissolve, animations: { [weak self] in
-            self?.textLabel.text = step.question
-        })
-        UIView.transition(with: imageView, duration: 1, options: .transitionCrossDissolve, animations: { [weak self] in
-            self?.imageView.image = step.image
-        })
-        counterLabel.text = step.questionNumber
+    func show(quiz step: QuizStepViewModel) {
+        DispatchQueue.main.async { [weak self] in  // Гарантируем, что UI обновляется в главном потоке
+            guard let self = self else { return }
+            
+            // Настройка визуальных свойств imageView
+            self.imageView.layer.masksToBounds = true
+            self.imageView.layer.cornerRadius = 20
+            self.imageView.layer.borderColor = UIColor.clear.cgColor
+            
+            // Анимированное обновление текста вопроса и изображения
+            UIView.transition(with: self.textLabel, duration: 1, options: .transitionCrossDissolve, animations: {
+                self.textLabel.text = step.question  // Устанавливаем текст вопроса
+            })
+            
+            UIView.transition(with: self.imageView, duration: 1, options: .transitionCrossDissolve, animations: {
+                self.imageView.image = step.image  // Устанавливаем изображение
+            })
+            
+            // Установка текста номера вопроса без анимации
+            self.counterLabel.text = step.questionNumber
+        }
     }
     
     func showAnswerResult(isCorrect: Bool) {
@@ -224,18 +236,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.startAnimating()
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
     
     // MARK: - Public methods
-    
+   /*
     func didLoadDataFromServer() {
         hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
-    
+    */
     func handleDataLoadingError(with error: Error) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -247,20 +259,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                     guard let self = self else { return }
                     self.resetQuiz()
                     self.showLoadingIndicator()
-                    self.questionFactory?.loadData()
+                    self.questionFactory?.loadData(completion: {
+                        self.showCurrentQuestion()  // Показать текущий вопрос после повторной загрузки данных
+                    })
                 }
             self.alertPresenter.showAlert(model: model)
         }
     }
-    
-    func didFailToLoadData(with error: Error) {
+    /*func didFailToLoadData(with error: Error) {
         handleDataLoadingError(with: error)
     }
     
     func didReceiveError(error: Error) {
         handleDataLoadingError(with: error)
-    }
-    
+    }*/
+    /*
     func didReceiveQuestion(question: QuizQuestion?) {
         hideLoadingIndicator()
         guard let question = question else {
@@ -272,6 +285,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self?.show(quiz: viewModel)
         }
     }
+     */
 }
 
 

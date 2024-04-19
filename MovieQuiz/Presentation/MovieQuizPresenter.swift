@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizPresenter {
+final class MovieQuizPresenter: QuestionFactoryDelegate  {
     
     
     // MARK: - Private Properties
@@ -11,7 +11,7 @@ final class MovieQuizPresenter {
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
     
-    var viewController: MovieQuizViewController?
+    weak var viewController: MovieQuizViewController?
     
     // MARK: - Display Logic
     
@@ -52,6 +52,34 @@ final class MovieQuizPresenter {
             correctAnswers += 1
         }
         viewController?.showAnswerResult(isCorrect: isCorrect)
+    }
+    
+    func didReceiveQuestion(question: QuizQuestion?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.viewController?.hideLoadingIndicator()
+            guard let question = question else {
+                return
+            }
+            self.currentQuestion = question
+            let viewModel = self.convert(model: question)
+            UIView.transition(with: self.viewController?.view ?? UIView(), duration: 0.5, options: .transitionCrossDissolve, animations: {
+                self.viewController?.show(quiz: viewModel)
+            })
+        }
+    }
+    
+    // Newly added methods to conform to the protocol
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        viewController?.handleDataLoadingError(with: error)
+    }
+
+    func didReceiveError(error: Error) {
+        viewController?.handleDataLoadingError(with: error)
     }
     
 }
