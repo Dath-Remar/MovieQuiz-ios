@@ -8,11 +8,10 @@ final class MovieQuizPresenter {
     private var currentQuestionIndex = 0
     let questionsAmount: Int = 10
     
-    var viewController: MovieQuizViewController? {
-        didSet {
-            // Теперь доступ к элементам ViewController возможен и они могут использоваться для логики ответов
-        }
-    }
+    var currentQuestion: QuizQuestion?
+    var correctAnswers = 0
+    
+    var viewController: MovieQuizViewController?
     
     // MARK: - Display Logic
     
@@ -45,12 +44,12 @@ final class MovieQuizPresenter {
     
     func processAnswer(_ answer: Bool) {
         guard viewController?.yesButton.isEnabled ?? false, viewController?.noButton.isEnabled ?? false else { return }
-        guard let currentQuestion = viewController?.currentQuestion else {
+        guard let currentQuestion = currentQuestion else {
             return
         }
         let isCorrect = answer == currentQuestion.correctAnswer
         if isCorrect {
-            viewController?.correctAnswers += 1
+            correctAnswers += 1
         }
         viewController?.showAnswerResult(isCorrect: isCorrect)
     }

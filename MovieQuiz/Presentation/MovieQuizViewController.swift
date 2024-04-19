@@ -24,10 +24,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Private Properties
     
     //  private var currentQuestionIndex = 0
-    var correctAnswers = 0
+   // var correctAnswers = 0
     //  private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
-    var currentQuestion: QuizQuestion?
+   // var currentQuestion: QuizQuestion?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
     private var statisticService: StatisticService?
     private var presenter = MovieQuizPresenter()
@@ -87,8 +87,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             guard let question = question else {
                 return
             }
-            self.currentQuestion = question
-            let viewModel = presenter.convert(model: question)
+            self.presenter.currentQuestion = question
+            let viewModel = self.presenter.convert(model: question)
             UIView.transition(with: self.view, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 self.show(quiz: viewModel)
             })
@@ -160,11 +160,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Results Handling
     
     private func showFinalResult() {
-        statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
+        statisticService?.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
         let statisticsText = getStatisticsText()
-        let messagePrefix = correctAnswers == presenter.questionsAmount ?
+        let messagePrefix = presenter.correctAnswers == presenter.questionsAmount ?
         "Поздравляем, вы ответили на 10 из 10!" :
-        "Ваш результат: \(correctAnswers)/10"
+        "Ваш результат: \(presenter.correctAnswers)/10"
         let finalMessage = "\(messagePrefix)\n\(statisticsText)"
         let model = AlertModel(title: "Этот раунд окончен!", message: finalMessage, buttonText: "Сыграть ещё раз") { [weak self] in
             self?.resetQuiz()
@@ -174,7 +174,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func resetQuiz() {
         presenter.resetQuestionIndex()
-        correctAnswers = 0
+        presenter.correctAnswers = 0
         showCurrentQuestion()
     }
     
@@ -211,7 +211,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             self.presenter.resetQuestionIndex()
-            self.correctAnswers = 0
+            presenter.correctAnswers = 0
             self.questionFactory?.requestNextQuestion()
         }
         alertPresenter.showAlert(model: model)
@@ -266,7 +266,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         guard let question = question else {
             return
         }
-        currentQuestion = question
+        presenter.currentQuestion = question
         let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
