@@ -4,7 +4,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
     
     
     // MARK: - Private Properties
-    
+    var questionFactory: QuestionFactoryProtocol?
     private var currentQuestionIndex = 0
     let questionsAmount: Int = 10
     
@@ -13,6 +13,9 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
     
     weak var viewController: MovieQuizViewController?
     
+    init() {
+        self.questionFactory = QuestionFactory(delegate: self)
+    }
     // MARK: - Display Logic
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -69,7 +72,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         }
     }
     
-    // Newly added methods to conform to the protocol
+    
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
     }
@@ -114,6 +117,16 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
                 self.viewController?.showCurrentQuestion()  // Показываем текущий вопрос
             }
         }
+    }
+    
+    func startQuiz() {
+        questionFactory?.loadData(completion: {
+            self.viewController?.showCurrentQuestion()
+        })
+    }
+    
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
     }
     
 }

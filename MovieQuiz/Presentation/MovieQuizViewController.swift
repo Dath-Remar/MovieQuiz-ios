@@ -26,7 +26,7 @@ final class MovieQuizViewController: UIViewController {
     //  private var currentQuestionIndex = 0
    // var correctAnswers = 0
     //  private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol?
+    // private var questionFactory: QuestionFactoryProtocol?
    // var currentQuestion: QuizQuestion?
     lazy var alertPresenter = AlertPresenter(viewController: self)
     var statisticService: StatisticService?
@@ -43,9 +43,10 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - Setup
     private func setupQuiz() {
+        presenter.startQuiz()  // Начинаем квиз через presenter
        // questionFactory.delegate = presenter
         let questionFactory = QuestionFactory(delegate: presenter)  // Создание фабрики вопросов
-        self.questionFactory = questionFactory
+     //   self.questionFactory = questionFactory
         overrideUserInterfaceStyle = .dark  // Установка стиля интерфейса
         statisticService = StatisticServiceImplementation()  // Инициализация сервиса статистики
         configureUI()  // Настройка UI
@@ -99,9 +100,9 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Question Handling
     
     func showCurrentQuestion() {
-        guard let factory = questionFactory else { return }
+       // guard let factory = questionFactory else { return }
         showLoadingIndicator()
-        factory.requestNextQuestion()
+        presenter.requestNextQuestion()
     }
     
  /*   func processAnswer(_ answer: Bool) {
@@ -230,7 +231,7 @@ final class MovieQuizViewController: UIViewController {
             guard let self = self else { return }
             self.presenter.resetQuestionIndex()
             presenter.correctAnswers = 0
-            self.questionFactory?.requestNextQuestion()
+            presenter.questionFactory?.requestNextQuestion()
         }
         alertPresenter.showAlert(model: model)
     }
@@ -265,7 +266,7 @@ final class MovieQuizViewController: UIViewController {
                     guard let self = self else { return }
                     self.resetQuiz()
                     self.showLoadingIndicator()
-                    self.questionFactory?.loadData(completion: {
+                    presenter.questionFactory?.loadData(completion: {
                         self.showCurrentQuestion()  // Показать текущий вопрос после повторной загрузки данных
                     })
                 }
