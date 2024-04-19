@@ -9,13 +9,32 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
     weak var viewController: MovieQuizViewController?
+    var statisticService: StatisticService?
     
     // MARK: - Initializers
-    init() {
+    init(statisticService: StatisticService?) {
         self.questionFactory = QuestionFactory(delegate: self)
+        self.statisticService = statisticService
     }
     
     // MARK: - Public Methods
+    
+    func getStatisticsText() -> String {
+        guard let statisticsService = statisticService else {
+            return "Статистика недоступна"
+        }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy HH:mm"
+        let gamesPlayed = statisticsService.gamesCount
+        let bestGameScore = "\(statisticsService.bestGame.correct)/\(statisticsService.bestGame.total)"
+        let bestGameDate = dateFormatter.string(from: statisticsService.bestGame.date)
+        let overallAccuracy = String(format: "%.2f%%", statisticsService.totalAccuracy * 100)
+        return """
+        Количество сыгранных квизов: \(gamesPlayed)
+        Рекорд: \(bestGameScore) (\(bestGameDate))
+        Средняя точность: \(overallAccuracy)
+        """
+    }
     
     func startQuiz() {
         questionFactory?.loadData(completion: {
@@ -70,7 +89,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         guard let viewController = viewController else { return }
         
         viewController.statisticService?.store(correct: correctAnswers, total: questionsAmount)
-        let statisticsText = viewController.getStatisticsText()
+        let statisticsText = getStatisticsText()
         
         let messagePrefix = correctAnswers == questionsAmount ?
         "Поздравляем, вы ответили на 10 из 10!" :

@@ -30,15 +30,16 @@ final class MovieQuizViewController: UIViewController {
    // var currentQuestion: QuizQuestion?
     lazy var alertPresenter = AlertPresenter(viewController: self)
     var statisticService: StatisticService?
-    private var presenter = MovieQuizPresenter()
-    
+    private var presenter = MovieQuizPresenter(statisticService: StatisticServiceImplementation())
+
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupQuiz()
+        let statisticService = StatisticServiceImplementation()  // Создание сервиса статистики
+        self.presenter = MovieQuizPresenter(statisticService: statisticService)  // Инициализация презентера с сервисом статистики
         presenter.viewController = self // Устанавливаем ссылку на ViewController в Presenter
-
+        setupQuiz()
     }
     
     // MARK: - Setup
@@ -197,7 +198,7 @@ final class MovieQuizViewController: UIViewController {
         showCurrentQuestion()
     }
     
-    func getStatisticsText() -> String {
+   /* func getStatisticsText() -> String {
         guard let statisticsService = statisticService else {
             return "Статистика недоступна"
         }
@@ -213,7 +214,7 @@ final class MovieQuizViewController: UIViewController {
         Средняя точность: \(overallAccuracy)
         """
     }
-    
+    */
     // MARK: - UI Helpers
     
     func changeStateButtons(isEnabled: Bool) {
