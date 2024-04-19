@@ -223,7 +223,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     // MARK: - AlertError
-    
+   /*
     private func showNetworkError(message: String) {
         hideLoadingIndicator()
         let model = AlertModel(title: "Ошибка",
@@ -236,10 +236,10 @@ final class MovieQuizViewController: UIViewController {
         }
         alertPresenter.showAlert(model: model)
     }
-    
+    */
     // MARK: - ActivityIndicator
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
@@ -256,6 +256,19 @@ final class MovieQuizViewController: UIViewController {
         questionFactory?.requestNextQuestion()
     }
     */
+    
+    
+
+    func handleDataLoadingError(with error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.hideLoadingIndicator()  // Операция с UI
+            self.presenter.handleDataLoadingError(with: error)  // Делегирование обработки ошибки в Presenter
+        }
+    }
+
+    
+    /*
     func handleDataLoadingError(with error: Error) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -274,6 +287,7 @@ final class MovieQuizViewController: UIViewController {
             self.alertPresenter.showAlert(model: model)
         }
     }
+     */
     /*func didFailToLoadData(with error: Error) {
         handleDataLoadingError(with: error)
     }

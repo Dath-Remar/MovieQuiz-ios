@@ -19,6 +19,28 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // MARK: - Public Methods
     
+    
+
+    func handleDataLoadingError(with error: Error) {
+        // Подготовка модели алерта с замыканием для сброса квиза и повторной загрузки данных
+        let alertModel = AlertModel(
+            title: "Ошибка",
+            message: error.localizedDescription,
+            buttonText: "Попробовать еще раз"
+        ) { [weak self] in
+            guard let self = self else { return }
+            self.viewController?.hideLoadingIndicator()  // Управление UI через ссылку на ViewController
+            self.viewController?.resetQuiz()  // Сброс индексов и счётчиков квиза
+            self.viewController?.showLoadingIndicator()  // Управление UI через ссылку на ViewController
+            self.questionFactory?.loadData(completion: { [weak self] in
+                self?.viewController?.showCurrentQuestion()  // Показ текущего вопроса после перезагрузки данных
+            })
+        }
+        // Показ алерта через ViewController
+        viewController?.alertPresenter.showAlert(model: alertModel)
+    }
+
+    
     func getStatisticsText() -> String {
         guard let statisticsService = statisticService else {
             return "Статистика недоступна"
