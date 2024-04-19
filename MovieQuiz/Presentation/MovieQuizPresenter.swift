@@ -1,60 +1,42 @@
 import UIKit
 
-final class MovieQuizPresenter: QuestionFactoryDelegate  {
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    
-    // MARK: - Private Properties
+    // MARK: - Properties
     var questionFactory: QuestionFactoryProtocol?
     private var currentQuestionIndex = 0
     let questionsAmount: Int = 10
-    
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
-    
     weak var viewController: MovieQuizViewController?
     
+    // MARK: - Initializers
     init() {
         self.questionFactory = QuestionFactory(delegate: self)
     }
-    // MARK: - Display Logic
     
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
-        )
-    }
+    // MARK: - Public Methods
     
-    func isLastQuestion() -> Bool {
-        currentQuestionIndex == questionsAmount - 1
+    func startQuiz() {
+        questionFactory?.loadData(completion: {
+            self.viewController?.showCurrentQuestion()
+        })
     }
     
     func resetQuestionIndex() {
         currentQuestionIndex = 0
     }
     
-    func switchToNextQuestion() {
-        currentQuestionIndex += 1
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
     }
+    
     func handleYesButtonClicked() {
         processAnswer(true)
     }
-
+    
     func handleNoButtonClicked() {
         processAnswer(false)
-    }
-    
-    func processAnswer(_ answer: Bool) {
-        guard viewController?.yesButton.isEnabled ?? false, viewController?.noButton.isEnabled ?? false else { return }
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let isCorrect = answer == currentQuestion.correctAnswer
-        if isCorrect {
-            correctAnswers += 1
-        }
-        showAnswerResult(isCorrect: isCorrect)
     }
     
     func didReceiveQuestion(question: QuizQuestion?) {
@@ -72,15 +54,14 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         }
     }
     
-    
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
     }
-
+    
     func didFailToLoadData(with error: Error) {
         viewController?.handleDataLoadingError(with: error)
     }
-
+    
     func didReceiveError(error: Error) {
         viewController?.handleDataLoadingError(with: error)
     }
@@ -92,8 +73,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         let statisticsText = viewController.getStatisticsText()
         
         let messagePrefix = correctAnswers == questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10!" :
-            "Ваш результат: \(correctAnswers)/10"
+        "Поздравляем, вы ответили на 10 из 10!" :
+        "Ваш результат: \(correctAnswers)/10"
         
         let finalMessage = "\(messagePrefix)\n\(statisticsText)"
         
@@ -104,7 +85,21 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         viewController.alertPresenter.showAlert(model: model)
     }
     
-    func showAnswerResult(isCorrect: Bool) {
+    // MARK: - Private Methods
+    
+    private func processAnswer(_ answer: Bool) {
+        guard viewController?.yesButton.isEnabled ?? false, viewController?.noButton.isEnabled ?? false else { return }
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let isCorrect = answer == currentQuestion.correctAnswer
+        if isCorrect {
+            correctAnswers += 1
+        }
+        showAnswerResult(isCorrect: isCorrect)
+    }
+    
+    private func showAnswerResult(isCorrect: Bool) {
         viewController?.updateUIForAnswer(isCorrect: isCorrect)  // Обновляем UI в зависимости от ответа
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
@@ -119,14 +114,20 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         }
     }
     
-    func startQuiz() {
-        questionFactory?.loadData(completion: {
-            self.viewController?.showCurrentQuestion()
-        })
+    private func isLastQuestion() -> Bool {
+        return currentQuestionIndex == questionsAmount - 1
     }
     
-    func requestNextQuestion() {
-        questionFactory?.requestNextQuestion()
+    
+    private func switchToNextQuestion() {
+        currentQuestionIndex += 1
     }
     
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+        return QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
+        )
+    }
 }
