@@ -24,7 +24,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     // MARK: - Reachability
-
+    
     func isConnectedToNetwork() -> Bool {
         reachability.whenReachable = { _ in
             print("Сеть доступна")
@@ -32,16 +32,16 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         reachability.whenUnreachable = { _ in
             print("Сеть недоступна")
         }
-
+        
         do {
             try reachability.startNotifier()
         } catch {
             print("Не удалось запустить уведомления")
         }
-
+        
         return reachability.connection != .unavailable
     }
-
+    
     // MARK: - QuestionFactoryDelegate Methods
     
     func didReceiveQuestion(question: QuizQuestion?) {
@@ -58,19 +58,19 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             })
         }
     }
-
+    
     func didFailToLoadData(with error: Error) {
         viewController?.handleDataLoadingError(with: error)
     }
-
+    
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
     }
-
+    
     func didReceiveError(error: Error) {
         viewController?.handleDataLoadingError(with: error)
     }
-
+    
     // MARK: - Error Handling Methods
     
     func handleDataLoadingError(with error: Error) {
@@ -83,14 +83,14 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self.viewController?.hideLoadingIndicator()
             self.viewController?.resetQuiz()
             self.viewController?.showLoadingIndicator()
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 self.attemptToReloadData()
             }
         }
         viewController?.alertPresenter.showAlert(model: alertModel)
     }
-
+    
     private func attemptToReloadData() {
         if !isConnectedToNetwork() {
             handleNoInternetConnection()
@@ -100,7 +100,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self?.viewController?.showCurrentQuestion()
         })
     }
-
+    
     private func handleNoInternetConnection() {
         let alertModel = AlertModel(
             title: "Нет соединения",
@@ -110,7 +110,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         )
         viewController?.alertPresenter.showAlert(model: alertModel)
     }
-
+    
     // MARK: - Quiz Management Methods
     
     func startQuiz() {
@@ -118,25 +118,25 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self.viewController?.showCurrentQuestion()
         })
     }
-
+    
     func resetQuestionIndex() {
         currentQuestionIndex = 0
     }
-
+    
     func requestNextQuestion() {
         questionFactory?.requestNextQuestion()
     }
-
+    
     // MARK: - Response Handling Methods
     
     func handleYesButtonClicked() {
         processAnswer(true)
     }
-
+    
     func handleNoButtonClicked() {
         processAnswer(false)
     }
-
+    
     private func processAnswer(_ answer: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let isCorrect = answer == currentQuestion.correctAnswer
@@ -145,7 +145,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
         showAnswerResult(isCorrect: isCorrect)
     }
-
+    
     private func showAnswerResult(isCorrect: Bool) {
         viewController?.updateUIForAnswer(isCorrect: isCorrect)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -158,15 +158,15 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             }
         }
     }
-
+    
     private func isLastQuestion() -> Bool {
         return currentQuestionIndex == questionsAmount - 1
     }
-
+    
     private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
-
+    
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
@@ -174,7 +174,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
     }
-
+    
     // MARK: - Final Results Presentation
     
     func showFinalResult() {
@@ -195,7 +195,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         
         viewController.alertPresenter.showAlert(model: model)
     }
-
+    
     // MARK: - Statistical Methods
     
     func getStatisticsText() -> String {
