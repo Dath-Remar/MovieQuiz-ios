@@ -28,8 +28,8 @@ final class MovieQuizViewController: UIViewController {
     //  private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
    // var currentQuestion: QuizQuestion?
-    private lazy var alertPresenter = AlertPresenter(viewController: self)
-    private var statisticService: StatisticService?
+    lazy var alertPresenter = AlertPresenter(viewController: self)
+    var statisticService: StatisticService?
     private var presenter = MovieQuizPresenter()
     
     // MARK: - Lifecycle
@@ -98,7 +98,7 @@ final class MovieQuizViewController: UIViewController {
     }*/
     // MARK: - Question Handling
     
-    private func showCurrentQuestion() {
+    func showCurrentQuestion() {
         guard let factory = questionFactory else { return }
         showLoadingIndicator()
         factory.requestNextQuestion()
@@ -149,7 +149,7 @@ final class MovieQuizViewController: UIViewController {
         }
     }
     
-    func showAnswerResult(isCorrect: Bool) {
+   /* func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor(named: "YP Green")?.cgColor : UIColor(named: "YP Red")?.cgColor
         changeStateButtons(isEnabled: false)
@@ -158,7 +158,7 @@ final class MovieQuizViewController: UIViewController {
             guard let self = self else { return }
             changeStateButtons(isEnabled: true)
             if self.presenter.isLastQuestion(){
-                self.showFinalResult()
+                presenter.showFinalResult()
                 //presenter.switchToNextQuestion()
                 //self.showCurrentQuestion()
             } else {
@@ -168,10 +168,16 @@ final class MovieQuizViewController: UIViewController {
             }
         }
     }
+    */
     
+    func updateUIForAnswer(isCorrect: Bool) {
+        imageView.layer.borderWidth = 8
+        imageView.layer.borderColor = isCorrect ? UIColor(named: "YP Green")?.cgColor : UIColor(named: "YP Red")?.cgColor
+        changeStateButtons(isEnabled: false) // Отключаем кнопки, пока идёт задержка
+    }
     // MARK: - Results Handling
     
-    private func showFinalResult() {
+ /*   private func showFinalResult() {
         statisticService?.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
         let statisticsText = getStatisticsText()
         let messagePrefix = presenter.correctAnswers == presenter.questionsAmount ?
@@ -183,14 +189,14 @@ final class MovieQuizViewController: UIViewController {
         }
         alertPresenter.showAlert(model: model)
     }
-    
-    private func resetQuiz() {
+    */
+    func resetQuiz() {
         presenter.resetQuestionIndex()
         presenter.correctAnswers = 0
         showCurrentQuestion()
     }
     
-    private func getStatisticsText() -> String {
+    func getStatisticsText() -> String {
         guard let statisticsService = statisticService else {
             return "Статистика недоступна"
         }
@@ -209,7 +215,7 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - UI Helpers
     
-    private func changeStateButtons(isEnabled: Bool) {
+    func changeStateButtons(isEnabled: Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
     }

@@ -51,7 +51,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
         if isCorrect {
             correctAnswers += 1
         }
-        viewController?.showAnswerResult(isCorrect: isCorrect)
+        showAnswerResult(isCorrect: isCorrect)
     }
     
     func didReceiveQuestion(question: QuizQuestion?) {
@@ -80,6 +80,40 @@ final class MovieQuizPresenter: QuestionFactoryDelegate  {
 
     func didReceiveError(error: Error) {
         viewController?.handleDataLoadingError(with: error)
+    }
+    
+    func showFinalResult() {
+        guard let viewController = viewController else { return }
+        
+        viewController.statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        let statisticsText = viewController.getStatisticsText()
+        
+        let messagePrefix = correctAnswers == questionsAmount ?
+            "Поздравляем, вы ответили на 10 из 10!" :
+            "Ваш результат: \(correctAnswers)/10"
+        
+        let finalMessage = "\(messagePrefix)\n\(statisticsText)"
+        
+        let model = AlertModel(title: "Этот раунд окончен!", message: finalMessage, buttonText: "Сыграть ещё раз") {
+            viewController.resetQuiz()
+        }
+        
+        viewController.alertPresenter.showAlert(model: model)
+    }
+    
+    func showAnswerResult(isCorrect: Bool) {
+        viewController?.updateUIForAnswer(isCorrect: isCorrect)  // Обновляем UI в зависимости от ответа
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
+            self.viewController?.changeStateButtons(isEnabled: true) // Включаем кнопки после задержки
+            if self.isLastQuestion() {
+                self.showFinalResult()  // Показываем финальный результат, если это последний вопрос
+            } else {
+                self.switchToNextQuestion()  // Переключаем на следующий вопрос
+                self.viewController?.showCurrentQuestion()  // Показываем текущий вопрос
+            }
+        }
     }
     
 }
