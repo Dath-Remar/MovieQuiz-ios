@@ -23,13 +23,11 @@ final class MovieQuizUITests: XCTestCase {
         app = nil
     }
     // MARK: - Example Test
-
+    
     func testExample() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
-        
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     // MARK: - Test Yes Button Changes Poster
     
@@ -82,7 +80,7 @@ final class MovieQuizUITests: XCTestCase {
     
     func testGameFinish() {
         let yesButton = app.buttons["Yes"]
-
+        
         for _ in 1...10 {
             yesButton.tap()
             let expectation = XCTestExpectation(description: "Wait for next question or alert")
@@ -91,7 +89,7 @@ final class MovieQuizUITests: XCTestCase {
             }
             wait(for: [expectation], timeout: 2.5)
         }
-
+        
         let alert = app.alerts["Этот раунд окончен!"]
         let alertExists = alert.waitForExistence(timeout: 5)
         
@@ -102,7 +100,7 @@ final class MovieQuizUITests: XCTestCase {
     
     func testAlertDismiss() throws {
         let yesButton = app.buttons["Yes"]
-
+        
         for _ in 1...10 {
             yesButton.tap()
             let expectation = XCTestExpectation(description: "Wait for next question or alert")
@@ -111,7 +109,7 @@ final class MovieQuizUITests: XCTestCase {
             }
             wait(for: [expectation], timeout: 2.5)
         }
-
+        
         let alert = app.alerts["Этот раунд окончен!"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Alert should be present")
         alert.buttons["Сыграть ещё раз"].tap()
@@ -121,4 +119,4 @@ final class MovieQuizUITests: XCTestCase {
         XCTAssertEqual(indexLabel.label, "1/10", "Game should reset to the first question after alert dismissal.")
     }
 }
-    
+

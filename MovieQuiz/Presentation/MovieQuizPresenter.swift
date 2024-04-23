@@ -143,19 +143,20 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         if isCorrect {
             correctAnswers += 1
         }
+        viewController?.changeStateButtons(isEnabled: false)
         showAnswerResult(isCorrect: isCorrect)
     }
     
     private func showAnswerResult(isCorrect: Bool) {
         viewController?.updateUIForAnswer(isCorrect: isCorrect)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.viewController?.changeStateButtons(isEnabled: true)
             if self.isLastQuestion() {
                 self.showFinalResult()
             } else {
                 self.switchToNextQuestion()
                 self.viewController?.showCurrentQuestion()
             }
+            self.viewController?.changeStateButtons(isEnabled: true)
         }
     }
     
