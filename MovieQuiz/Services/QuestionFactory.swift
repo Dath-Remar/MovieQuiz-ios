@@ -59,7 +59,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
         }
     }
     
-    func loadData() {
+    func loadData(completion: @escaping () -> Void) {
         moviesLoader.loadMovies { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
@@ -67,8 +67,10 @@ final class QuestionFactory: QuestionFactoryProtocol {
                 case .success(let mostPopularMovies):
                     self.movies = mostPopularMovies.items
                     self.delegate?.didLoadDataFromServer()
+                    completion()  // Вызов completion callback после успешной загрузки данных
                 case .failure(let error):
                     self.delegate?.didFailToLoadData(with: error)
+                    self.showNetworkError(message: "Не удалось загрузить данные. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.")  // Отображение ошибки при неудаче
                 }
             }
         }
@@ -79,50 +81,50 @@ final class QuestionFactory: QuestionFactoryProtocol {
     private func showNetworkError(message: String) {
         delegate?.didReceiveError(error: NSError(domain: "com.yp.MovieQuiz", code: 1, userInfo: [NSLocalizedDescriptionKey: message]))
     }
-
+    
     // MARK: - Quiz Questions
     
     /* private let questions: [QuizQuestion] = [
-        QuizQuestion(
-            image: "The Godfather",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "The Dark Knight",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "Kill Bill",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "The Avengers",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "Deadpool",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "The Green Knight",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: true),
-        QuizQuestion(
-            image: "Old",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: false),
-        QuizQuestion(
-            image: "The Ice Age Adventures of Buck Wild",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: false),
-        QuizQuestion(
-            image: "Tesla",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: false),
-        QuizQuestion(
-            image: "Vivarium",
-            text: "Рейтинг этого фильма больше чем 6?",
-            correctAnswer: false)
-    ] */
+     QuizQuestion(
+     image: "The Godfather",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "The Dark Knight",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "Kill Bill",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "The Avengers",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "Deadpool",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "The Green Knight",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: true),
+     QuizQuestion(
+     image: "Old",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: false),
+     QuizQuestion(
+     image: "The Ice Age Adventures of Buck Wild",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: false),
+     QuizQuestion(
+     image: "Tesla",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: false),
+     QuizQuestion(
+     image: "Vivarium",
+     text: "Рейтинг этого фильма больше чем 6?",
+     correctAnswer: false)
+     ] */
 }
 
